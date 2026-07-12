@@ -26,41 +26,43 @@ jobs:
       - name: Find and extract ZIP
         shell: bash
         run: |
-          set -e
+          set -euo pipefail
 
-          ZIP_FILE="$(find . -maxdepth 1 -type f -name '*.zip' | head -n 1)"
+          ZIP_FILE="$(find "$GITHUB_WORKSPACE" -maxdepth 1 -type f -name '*.zip' | head -n 1)"
 
           if [ -z "$ZIP_FILE" ]; then
-            echo "No ZIP file found in repository root."
+            echo "Repository root does not contain a ZIP file."
             exit 1
           fi
 
           echo "Using ZIP: $ZIP_FILE"
 
-          mkdir -p /tmp/site-source
-          unzip -q "$ZIP_FILE" -d /tmp/site-source
+          rm -rf "$GITHUB_WORKSPACE/site-source"
+          mkdir -p "$GITHUB_WORKSPACE/site-source"
+          unzip -q "$ZIP_FILE" -d "$GITHUB_WORKSPACE/site-source"
 
-          PACKAGE_JSON="$(find /tmp/site-source -type f -name package.json | head -n 1)"
+          PACKAGE_JSON="$(find "$GITHUB_WORKSPACE/site-source" -type f -name package.json | head -n 1)"
 
           if [ -z "$PACKAGE_JSON" ]; then
-            echo "package.json was not found inside ZIP."
+            echo "package.json was not found inside the ZIP archive."
             exit 1
           fi
 
           PROJECT_DIR="$(dirname "$PACKAGE_JSON")"
+
+          echo "Project directory: $PROJECT_DIR"
           echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: ${{ env.PROJECT_DIR }}/package-lock.json
 
       - name: Install dependencies
         shell: bash
-        working-directory: ${{ env.PROJECT_DIR }}
         run: |
+          cd "$PROJECT_DIR"
+
           if [ -s package-lock.json ]; then
             npm ci
           else
@@ -68,8 +70,10 @@ jobs:
           fi
 
       - name: Build website
-        working-directory: ${{ env.PROJECT_DIR }}
-        run: npm run build
+        shell: bash
+        run: |
+          cd "$PROJECT_DIR"
+          npm run build -- --base="/${GITHUB_REPOSITORY#*/}/"
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
