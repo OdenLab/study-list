@@ -1,0 +1,93 @@
+name: Deploy ZIP to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Find and extract ZIP
+        shell: bash
+        run: |
+          set -e
+
+          ZIP_FILE="$(find . -maxdepth 1 -type f -name '*.zip' | head -n 1)"
+
+          if [ -z "$ZIP_FILE" ]; then
+            echo "No ZIP file found in repository root."
+            exit 1
+          fi
+
+          echo "Using ZIP: $ZIP_FILE"
+
+          mkdir -p /tmp/site-source
+          unzip -q "$ZIP_FILE" -d /tmp/site-source
+
+          PACKAGE_JSON="$(find /tmp/site-source -type f -name package.json | head -n 1)"
+
+          if [ -z "$PACKAGE_JSON" ]; then
+            echo "package.json was not found inside ZIP."
+            exit 1
+          fi
+
+          PROJECT_DIR="$(dirname "$PACKAGE_JSON")"
+          echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ${{ env.PROJECT_DIR }}/package-lock.json
+
+      - name: Install dependencies
+        shell: bash
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: |
+          if [ -s package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
+
+      - name: Build website
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: npm run build
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ env.PROJECT_DIR }}/dist
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
