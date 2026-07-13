@@ -25,7 +25,13 @@ import LuckyWheel from './components/LuckyWheel';
 export default function App() {
   const [currentDateStr, setCurrentDateStr] = useState<string>(START_DATE);
   const [currentView, setCurrentView] = useState<'day' | 'week' | 'month' | 'stats' | 'quotes' | 'wheel'>('day');
-  const [daysData, setDaysData] = useState<Record<string, DayData>>({});
+  const [daysData, setDaysData] = useState<Record<string, DayData>>(() => {
+    const initialDb: Record<string, DayData> = {};
+    ALL_DATES.forEach(dateStr => {
+      initialDb[dateStr] = createInitialDayData(dateStr);
+    });
+    return initialDb;
+  });
   const [likedQuotes, setLikedQuotes] = useState<LikedQuote[]>([]);
   const [wheelState, setWheelState] = useState<WheelState>({
     lastSpunDate: null,
@@ -49,30 +55,50 @@ export default function App() {
 
   // 1. Initial Loading & Local Storage Syncing
   useEffect(() => {
-    // A. Load days data
-    const cachedDays = localStorage.getItem('daysData_v1');
-    if (cachedDays) {
-      setDaysData(JSON.parse(cachedDays));
-    } else {
-      // First boot: pre-populate all 48 study dates to ensure robust queries
-      const initialDb: Record<string, DayData> = {};
+    const createCompleteDaysDb = (cached?: Record<string, DayData>): Record<string, DayData> => {
+      const completeDb: Record<string, DayData> = {};
       ALL_DATES.forEach(dateStr => {
-        initialDb[dateStr] = createInitialDayData(dateStr);
+        completeDb[dateStr] = cached?.[dateStr] ?? createInitialDayData(dateStr);
       });
-      localStorage.setItem('daysData_v1', JSON.stringify(initialDb));
-      setDaysData(initialDb);
+      return completeDb;
+    };
+
+    // A. Load days data. Always normalize cache so stale/corrupt localStorage cannot blank the app.
+    try {
+      const cachedDays = localStorage.getItem('daysData_v1');
+      const parsedDays = cachedDays ? JSON.parse(cachedDays) as Record<string, DayData> : undefined;
+      const completeDb = createCompleteDaysDb(parsedDays);
+      localStorage.setItem('daysData_v1', JSON.stringify(completeDb));
+      setDaysData(completeDb);
+    } catch (error) {
+      console.warn('Failed to load daysData_v1; resetting local study data.', error);
+      const fallbackDb = createCompleteDaysDb();
+      localStorage.setItem('daysData_v1', JSON.stringify(fallbackDb));
+      setDaysData(fallbackDb);
     }
 
     // B. Load liked quotes
-    const cachedQuotes = localStorage.getItem('likedQuotes_v1');
-    if (cachedQuotes) {
-      setLikedQuotes(JSON.parse(cachedQuotes));
+    try {
+      const cachedQuotes = localStorage.getItem('likedQuotes_v1');
+      if (cachedQuotes) {
+        const parsedQuotes = JSON.parse(cachedQuotes);
+        setLikedQuotes(Array.isArray(parsedQuotes) ? parsedQuotes : []);
+      }
+    } catch (error) {
+      console.warn('Failed to load likedQuotes_v1; resetting quote likes.', error);
+      localStorage.removeItem('likedQuotes_v1');
+      setLikedQuotes([]);
     }
 
     // C. Load wheel stats
-    const cachedWheel = localStorage.getItem('wheelState_v1');
-    if (cachedWheel) {
-      setWheelState(JSON.parse(cachedWheel));
+    try {
+      const cachedWheel = localStorage.getItem('wheelState_v1');
+      if (cachedWheel) {
+        setWheelState({ ...wheelState, ...JSON.parse(cachedWheel) });
+      }
+    } catch (error) {
+      console.warn('Failed to load wheelState_v1; resetting wheel state.', error);
+      localStorage.removeItem('wheelState_v1');
     }
   }, []);
 
