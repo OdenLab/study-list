@@ -8,7 +8,7 @@
 
 1. 安装依赖：
    ```bash
-   npm ci
+   npm install
    ```
 2. 启动开发服务器：
    ```bash
