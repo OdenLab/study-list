@@ -39,12 +39,15 @@ jobs:
           NPM_CONFIG_AUDIT: "false"
           NPM_CONFIG_FUND: "false"
           NPM_CONFIG_PROGRESS: "false"
+          NPM_CONFIG_REGISTRY: "https://registry.npmjs.org/"
         run: |
           set -o pipefail
           echo "Node version: $(node --version)"
           echo "npm version: $(npm --version)"
+          npm config set registry "https://registry.npmjs.org/"
+          echo "npm registry: $(npm config get registry)"
 
-          if ! npm install --no-audit --no-fund --loglevel=info 2>&1 | tee npm-install.log; then
+          if ! npm install --registry=https://registry.npmjs.org/ --no-audit --no-fund --loglevel=info 2>&1 | tee npm-install.log; then
             status=${PIPESTATUS[0]}
             echo "::group::npm debug logs"
             find "$HOME/.npm/_logs" -maxdepth 1 -type f -name "*.log" -print -exec cat {} \; || true
