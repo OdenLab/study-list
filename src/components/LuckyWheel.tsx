@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Sparkles, Trophy, HelpCircle, Award } from 'lucide-react';
+import { Sparkles, Trophy, Award, Gift, RotateCw } from 'lucide-react';
 import { WheelState, WheelPrize } from '../types';
 import { ALL_DATES, parseLocalDate, getDayType } from '../utils/dateHelpers';
 
@@ -45,15 +45,21 @@ export default function LuckyWheel({
 
   // Visual slices of the wheel (8 balanced visual categories)
   const VISUAL_SECTORS = [
-    { label: '未中奖', color: 'bg-neutral-50 text-neutral-400 border-neutral-200' },
-    { label: '免单项 1-3', color: 'bg-white text-neutral-800 border-neutral-300' },
-    { label: '免单项 4-5', color: 'bg-neutral-50 text-neutral-800 border-neutral-300' },
-    { label: '免周六努力', color: 'bg-yellow-50/50 text-amber-700 border-yellow-200/60' },
-    { label: '免单项 7-8', color: 'bg-white text-neutral-800 border-neutral-300' },
-    { label: '免全天(单日)', color: 'bg-emerald-50/40 text-emerald-800 border-emerald-200/50' },
-    { label: '免整周工作日', color: 'bg-indigo-50/40 text-indigo-800 border-indigo-200/50' },
-    { label: '未中奖', color: 'bg-neutral-50 text-neutral-400 border-neutral-200' },
+    { label: '未中奖', tone: '#f8fafc', text: 'text-slate-400', dot: 'bg-slate-300' },
+    { label: '免单项 1-3', tone: '#fff7ed', text: 'text-orange-700', dot: 'bg-orange-300' },
+    { label: '免单项 4-5', tone: '#fefce8', text: 'text-amber-700', dot: 'bg-amber-300' },
+    { label: '免周六努力', tone: '#ecfdf5', text: 'text-emerald-700', dot: 'bg-emerald-300' },
+    { label: '免单项 7-8', tone: '#eff6ff', text: 'text-blue-700', dot: 'bg-blue-300' },
+    { label: '免全天', tone: '#f5f3ff', text: 'text-violet-700', dot: 'bg-violet-300' },
+    { label: '免整周', tone: '#fdf2f8', text: 'text-rose-700', dot: 'bg-rose-300' },
+    { label: '未中奖', tone: '#f1f5f9', text: 'text-slate-400', dot: 'bg-slate-300' },
   ];
+
+  const wheelGradient = `conic-gradient(${VISUAL_SECTORS.map((sector, index) => {
+    const start = index * 45;
+    const end = (index + 1) * 45;
+    return `${sector.tone} ${start}deg ${end}deg`;
+  }).join(', ')})`;
 
   const hasDailySpinUsed = wheelState.lastSpunDate === currentDateStr;
   const extraSpinsRemaining = wheelState.extraSpinsTotal - wheelState.extraSpinsSpent;
@@ -152,96 +158,109 @@ export default function LuckyWheel({
   const { luckyIndex, tier, desc, winCount, totalSpins } = calculateLuckyStats();
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8" id="lucky-wheel-view">
-      <div className="text-center mb-8">
-        <h2 className="text-2xl font-sans font-semibold tracking-tight text-neutral-800 flex items-center justify-center gap-2">
-          <Sparkles className="w-6 h-6 text-yellow-500 fill-yellow-500/20" />
-          摸鱼大转盘
-        </h2>
-        <p className="text-xs text-neutral-500 font-sans mt-2">
-          每天有一次基础抽奖机会，若完成试卷可登记额外抽取。所得免除任务将自动被彩色流光划去。
-        </p>
+    <div className="max-w-5xl mx-auto px-4 py-6 sm:py-8" id="lucky-wheel-view">
+      <div className="relative overflow-hidden rounded-[2rem] border border-white/70 bg-gradient-to-br from-white via-amber-50/50 to-sky-50/70 shadow-[0_24px_80px_rgba(15,23,42,0.08)] px-5 py-6 sm:px-8 mb-8">
+        <div className="absolute -top-20 -right-16 h-48 w-48 rounded-full bg-amber-200/30 blur-3xl" />
+        <div className="absolute -bottom-24 -left-16 h-56 w-56 rounded-full bg-sky-200/30 blur-3xl" />
+        <div className="relative text-center">
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-neutral-900 text-white shadow-lg shadow-neutral-900/15">
+            <Sparkles className="h-6 w-6 text-amber-200" />
+          </div>
+          <h2 className="text-3xl sm:text-4xl font-sans font-black tracking-tight text-neutral-900">
+            摸鱼大转盘
+          </h2>
+          <p className="mx-auto mt-3 max-w-2xl text-sm sm:text-base text-neutral-500 font-sans leading-relaxed">
+            每天一次基础抽奖，完成试卷可兑换额外抽取。转盘已升级为彩色柔光样式，中奖任务会自动彩色流光划去。
+          </p>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
         {/* Wheel column */}
         <div className="lg:col-span-7 flex flex-col items-center">
-          <div className="relative w-80 h-80 md:w-96 md:h-96 flex items-center justify-center" id="wheel-outer-container">
-            {/* Arrow pointer */}
-            <div className="absolute top-0 z-20 -mt-1 flex flex-col items-center">
-              <div className="w-0 h-0 border-l-[12px] border-l-transparent border-r-[12px] border-r-transparent border-t-[20px] border-t-neutral-800" />
-              <div className="w-1.5 h-3 bg-neutral-800 -mt-1 rounded-sm" />
-            </div>
+          <div className="relative w-full max-w-[430px] rounded-[2rem] border border-white/80 bg-white/80 p-4 sm:p-6 shadow-[0_22px_70px_rgba(15,23,42,0.10)] backdrop-blur">
+            <div className="absolute inset-x-8 top-8 h-24 rounded-full bg-amber-200/20 blur-3xl" />
+            <div className="relative aspect-square w-full" id="wheel-outer-container">
+              <div className="absolute left-1/2 top-0 z-30 -translate-x-1/2 -translate-y-2">
+                <div className="relative flex flex-col items-center">
+                  <div className="h-8 w-10 rounded-b-full bg-neutral-900 shadow-lg" />
+                  <div className="-mt-1 h-0 w-0 border-l-[15px] border-r-[15px] border-t-[28px] border-l-transparent border-r-transparent border-t-neutral-900 drop-shadow" />
+                </div>
+              </div>
 
-            {/* Spinning Circle */}
-            <motion.div
-              animate={{ rotate: rotation }}
-              transition={isSpinning ? { duration: 4.5, ease: [0.2, 0.8, 0.1, 1] } : { duration: 0 }}
-              className="w-full h-full rounded-full border-[6px] border-neutral-800 relative overflow-hidden shadow-lg flex items-center justify-center bg-white"
-              id="wheel-circle"
-            >
-              {/* Slices overlay */}
-              {VISUAL_SECTORS.map((sec, i) => {
-                const angle = 360 / 8;
-                const rot = i * angle;
-                return (
+              <motion.div
+                animate={{ rotate: rotation }}
+                transition={isSpinning ? { duration: 4.5, ease: [0.16, 0.9, 0.12, 1] } : { duration: 0 }}
+                className="absolute inset-0 rounded-full border-[10px] border-neutral-900 shadow-[0_18px_45px_rgba(15,23,42,0.18)]"
+                style={{ background: wheelGradient }}
+                id="wheel-circle"
+              >
+                <div className="absolute inset-3 rounded-full border border-white/80 shadow-inner" />
+                <div className="absolute inset-0 rounded-full bg-[radial-gradient(circle_at_35%_28%,rgba(255,255,255,0.82),rgba(255,255,255,0)_34%)]" />
+
+                {VISUAL_SECTORS.map((sec, i) => {
+                  const angle = i * 45 + 22.5;
+                  return (
+                    <div
+                      key={sec.label + i}
+                      className="absolute left-1/2 top-1/2 h-1/2 w-px origin-top"
+                      style={{ transform: `rotate(${angle}deg)` }}
+                    >
+                      <div
+                        className="absolute left-1/2 top-8 flex w-24 -translate-x-1/2 flex-col items-center gap-1 text-center"
+                        style={{ transform: `rotate(${-angle}deg)` }}
+                      >
+                        <span className={`h-2 w-2 rounded-full ${sec.dot} shadow-sm`} />
+                        <span className={`rounded-full bg-white/70 px-2 py-0.5 text-[10px] sm:text-xs font-semibold tracking-tight shadow-sm backdrop-blur ${sec.text}`}>
+                          {sec.label}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {[...Array(8)].map((_, i) => (
                   <div
                     key={i}
-                    className={`absolute top-0 left-0 w-full h-full flex items-center justify-center`}
-                    style={{
-                      transform: `rotate(${rot}deg)`,
-                    }}
-                  >
-                    {/* Visual dividing line */}
-                    <div className="absolute top-0 bottom-1/2 left-1/2 w-px bg-neutral-800 origin-bottom" />
-                    
-                    {/* Sector Text */}
-                    <div 
-                      className={`absolute top-10 font-sans text-[10px] md:text-xs font-medium tracking-tight text-center max-w-[60px] select-none ${sec.color}`}
-                      style={{
-                        transform: 'rotate(22.5deg)', // rotate into the middle of the 45 deg sector
-                        transformOrigin: 'center',
-                      }}
-                    >
-                      {sec.label}
-                    </div>
-                  </div>
-                );
-              })}
+                    className="absolute left-1/2 top-1/2 h-1/2 w-px origin-top bg-neutral-900/20"
+                    style={{ transform: `rotate(${i * 45}deg)` }}
+                  />
+                ))}
+              </motion.div>
 
-              {/* Center button visual */}
-              <div className="absolute w-12 h-12 bg-neutral-800 rounded-full border-4 border-white shadow flex items-center justify-center z-10">
-                <Sparkles className="w-4 h-4 text-white" />
+              <div className="absolute left-1/2 top-1/2 z-20 flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-[6px] border-white bg-neutral-900 shadow-[0_12px_30px_rgba(15,23,42,0.25)]">
+                <RotateCw className={`h-7 w-7 text-white ${isSpinning ? 'animate-spin' : ''}`} />
               </div>
-            </motion.div>
+            </div>
           </div>
 
-          {/* Controls */}
-          <div className="mt-8 flex flex-wrap gap-4 justify-center w-full max-w-md">
+          <div className="mt-6 grid w-full max-w-[430px] grid-cols-1 gap-3 sm:grid-cols-2">
             <button
               id="daily-spin-btn"
               disabled={!canSpinDaily || isSpinning}
               onClick={() => startSpin(false)}
-              className={`flex-1 py-3 px-5 rounded-xl text-sm font-sans font-medium border transition-all duration-300 flex items-center justify-center gap-2 ${
+              className={`min-h-[72px] rounded-2xl px-5 text-base font-sans font-bold border transition-all duration-300 flex items-center justify-center gap-2 ${
                 canSpinDaily && !isSpinning
-                  ? 'bg-neutral-800 text-white hover:bg-neutral-900 border-neutral-800 shadow'
+                  ? 'bg-neutral-900 text-white hover:-translate-y-0.5 hover:bg-neutral-800 border-neutral-900 shadow-xl shadow-neutral-900/15'
                   : 'bg-neutral-100 text-neutral-400 border-neutral-200 cursor-not-allowed'
               }`}
             >
-              {hasDailySpinUsed ? '📅 今日常规已转' : '🎯 每日一次抽奖'}
+              <Sparkles className="h-5 w-5" />
+              {hasDailySpinUsed ? '今日已转' : '每日一次抽奖'}
             </button>
 
             <button
               id="extra-spin-btn"
               disabled={!canSpinExtra || isSpinning}
               onClick={() => startSpin(true)}
-              className={`flex-1 py-3 px-5 rounded-xl text-sm font-sans font-medium border transition-all duration-300 flex items-center justify-center gap-2 ${
+              className={`min-h-[72px] rounded-2xl px-5 text-base font-sans font-bold border transition-all duration-300 flex items-center justify-center gap-2 ${
                 canSpinExtra && !isSpinning
-                  ? 'bg-amber-50 text-amber-800 hover:bg-amber-100 border-amber-200 shadow'
-                  : 'bg-neutral-50 text-neutral-400 border-neutral-200 cursor-not-allowed'
+                  ? 'bg-gradient-to-br from-amber-100 to-orange-50 text-amber-900 hover:-translate-y-0.5 border-amber-200 shadow-xl shadow-amber-200/40'
+                  : 'bg-white/70 text-neutral-400 border-neutral-200 cursor-not-allowed'
               }`}
             >
-              🎁 试卷额外抽 ({extraSpinsRemaining}次)
+              <Gift className="h-5 w-5" />
+              试卷额外抽 ({extraSpinsRemaining}次)
             </button>
           </div>
         </div>
@@ -249,7 +268,7 @@ export default function LuckyWheel({
         {/* Info & Stats column */}
         <div className="lg:col-span-5 space-y-6">
           {/* Exam Claim Area */}
-          <div className="p-5 border border-neutral-200/60 rounded-xl bg-white shadow-sm" id="exam-claim-card">
+          <div className="p-5 border border-white/80 rounded-2xl bg-white/85 shadow-[0_16px_45px_rgba(15,23,42,0.07)] backdrop-blur" id="exam-claim-card">
             <h3 className="font-sans font-medium text-sm text-neutral-800 flex items-center gap-1.5 mb-2">
               <Award className="w-4 h-4 text-amber-500" />
               完成试卷兑换抽奖券
@@ -297,7 +316,7 @@ export default function LuckyWheel({
           </div>
 
           {/* Lucky Stats Area */}
-          <div className="p-5 border border-neutral-200/60 rounded-xl bg-white shadow-sm" id="lucky-stats-card">
+          <div className="p-5 border border-white/80 rounded-2xl bg-white/85 shadow-[0_16px_45px_rgba(15,23,42,0.07)] backdrop-blur" id="lucky-stats-card">
             <h3 className="font-sans font-medium text-sm text-neutral-800 flex items-center gap-1.5 mb-4">
               <Trophy className="w-4 h-4 text-yellow-500" />
               欧气大盘点
@@ -311,7 +330,7 @@ export default function LuckyWheel({
                 </div>
                 <div className="w-full h-1.5 bg-neutral-100 rounded-full overflow-hidden">
                   <div 
-                    className="h-full bg-neutral-800 transition-all duration-1000" 
+                    className="h-full bg-gradient-to-r from-amber-400 via-orange-400 to-rose-400 transition-all duration-1000" 
                     style={{ width: `${luckyIndex}%` }} 
                   />
                 </div>
