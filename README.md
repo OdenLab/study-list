@@ -1,20 +1,22 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# 极简唯美学习清单
 
-# Run and deploy your AI Studio app
+一款极简线条风、富含诗意与唯美动效的暑期自主学习清单工具。支持每日计划、滑动翻页、周/月视图、统计面板、语录收藏和摸鱼大转盘。
 
-This contains everything you need to run your app locally.
+## 本地运行
 
-View your app in AI Studio: https://ai.studio/apps/3c5d1fb6-1481-4c3c-80b1-8fc8d4f5c780
+**前置要求：** Node.js 22 或兼容版本。
 
-## Run Locally
+1. 安装依赖：
+   ```bash
+   npm install
+   ```
+2. 启动开发服务器：
+   ```bash
+   npm run dev
+   ```
+3. 构建静态站点：
+   ```bash
+   npm run build
+   ```
 
-**Prerequisites:**  Node.js
-
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+构建产物会输出到 `dist/`，可用于静态托管或 GitHub Pages 部署。
