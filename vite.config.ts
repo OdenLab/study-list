@@ -1,0 +1,16 @@
+import path from 'path';
+import { defineConfig } from 'vite';
+
+export default defineConfig({
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, '.'),
+    },
+  },
+  server: {
+    // HMR can be disabled with DISABLE_HMR for low-resource edit environments.
+    hmr: process.env.DISABLE_HMR !== 'true',
+    // Disable file watching when DISABLE_HMR is true to save CPU.
+    watch: process.env.DISABLE_HMR === 'true' ? null : {},
+  },
+});
