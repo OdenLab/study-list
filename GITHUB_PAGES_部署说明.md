@@ -1,6 +1,6 @@
 # GitHub Pages 部署
 
-本项目已加入 `.github/workflows/deploy.yml`，推送到 `main` 分支后会自动构建并部署。
+本项目已加入 `.github/workflows/deploy.yml`，推送到 `main` 分支后会自动部署仓库中已提交的 `dist/` 静态产物。
 
 ## 1. 创建仓库
 
@@ -35,3 +35,5 @@ git push -u origin main
 - 清单数据存放在浏览器的 `localStorage` 中，不会同步到 GitHub，也不会跨浏览器或跨设备同步。
 - 清除站点数据、浏览器缓存或更换域名后，原有清单可能不可见。
 - 当前应用完全在浏览器端运行，无需配置 API Key；不要把任何真实密钥提交到公开仓库。
+
+- 如果修改源码，请先在本地运行 `npm install` 和 `npm run build`，并把更新后的 `dist/` 一起提交；CI 不再运行 npm 安装，避免私有 registry 超时。

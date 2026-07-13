@@ -20,3 +20,8 @@
    ```
 
 构建产物会输出到 `dist/`，可用于静态托管或 GitHub Pages 部署。
+
+
+## 部署说明
+
+GitHub Pages workflow 直接发布仓库中已提交的 `dist/` 静态产物，因此 CI 不需要运行 `npm install`。如果修改源码，请先在本地执行 `npm install` 和 `npm run build`，再提交更新后的 `dist/`。
