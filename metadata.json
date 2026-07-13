@@ -1,0 +1,6 @@
+{
+  "name": "极简唯美学习清单",
+  "description": "一款极简线条风、富含诗意与唯美动效的暑期自主学习清单工具。支持每日定制、滑动翻页、周月视图、摸鱼大转盘等特色功能。",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
